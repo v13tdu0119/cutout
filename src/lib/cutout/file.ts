@@ -1,5 +1,11 @@
 export const MAX_BYTES = 40 * 1024 * 1024;
 
+export function publicAsset(path: string): string {
+  const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+}
+
 const PHOTO_EXTENSIONS = /\.(jpe?g|png|webp|gif|bmp|avif)$/i;
 const HEIC_EXTENSIONS = /\.(heic|heif)$/i;
 

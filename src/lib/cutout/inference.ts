@@ -1,8 +1,9 @@
+import { publicAsset } from "./file";
 import { MODEL_SIZE, minMaxNormalize, rgbToNchwTensor, resizeMaskBilinear } from "./mask";
 
-export const MODEL_URL = "/models/u2netp.onnx";
-export const WASM_MJS = "/ort/ort-wasm-simd-threaded.mjs";
-export const WASM_BINARY = "/ort/ort-wasm-simd-threaded.wasm";
+export const MODEL_URL = publicAsset("/models/u2netp.onnx");
+export const WASM_MJS = publicAsset("/ort/ort-wasm-simd-threaded.mjs");
+export const WASM_BINARY = publicAsset("/ort/ort-wasm-simd-threaded.wasm");
 
 type OrtModule = typeof import("onnxruntime-web/wasm");
 type InferenceSession = import("onnxruntime-web").InferenceSession;

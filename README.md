@@ -2,6 +2,8 @@
 
 Browser tool that removes a photo background with a **U-Net**. Drop a portrait, inspect the probability map, threshold it, download a PNG. Pixels stay on your machine.
 
+Live site: [https://v13tdu0119.github.io/cutout/](https://v13tdu0119.github.io/cutout/)
+
 It follows the pipeline in Ahmed & Singh, *Study on Image Background Removal using Deep Learning* (Journal of Data Science, 2024:06, CC BY 4.0): encoder–decoder segmentation, a binary (or soft) mask, optional morphological cleanup, then cutout. The network in the app is **U²-Net-P** (Qin et al., 2020) — a nested U-Net small enough to run in WebAssembly.
 
 The paper focused on selfies and human portraits. That is still the sweet spot. Salient objects often work; busy scenes with many subjects will be messier.

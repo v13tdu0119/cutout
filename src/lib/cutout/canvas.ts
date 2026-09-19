@@ -75,7 +75,7 @@ export function paintRgba(
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
-  ctx.putImageData(new ImageData(rgba, width, height), 0, 0);
+  ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba), width, height), 0, 0);
 }
 
 export async function rgbaToPngBlob(

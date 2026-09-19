@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { loadImageFromFile, paintRgba, rasterizeImage, rgbaToPngBlob } from "@/lib/cutout/canvas";
-import { validateImageFile } from "@/lib/cutout/file";
+import { publicAsset, validateImageFile } from "@/lib/cutout/file";
 import { getSession, inferProbabilityMask, onModelProgress } from "@/lib/cutout/inference";
 import {
   applyAlpha,
@@ -170,7 +170,7 @@ export function CutoutApp() {
   }, [frame, modelReady]);
 
   async function onSample() {
-    const response = await fetch("/samples/portrait.jpg");
+    const response = await fetch(publicAsset("/samples/portrait.jpg"));
     if (!response.ok) {
       setError("The sample portrait could not be downloaded.");
       setStatus("error");

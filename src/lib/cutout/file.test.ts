@@ -1,6 +1,22 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { MAX_BYTES, validateImageFile } from "./file.ts";
+import { MAX_BYTES, publicAsset, validateImageFile } from "./file.ts";
+
+describe("publicAsset", () => {
+  it("prefixes the configured GitHub Pages base path", () => {
+    const previous = process.env.NEXT_PUBLIC_BASE_PATH;
+    process.env.NEXT_PUBLIC_BASE_PATH = "/cutout";
+    try {
+      assert.equal(publicAsset("/models/u2netp.onnx"), "/cutout/models/u2netp.onnx");
+    } finally {
+      if (previous === undefined) {
+        delete process.env.NEXT_PUBLIC_BASE_PATH;
+      } else {
+        process.env.NEXT_PUBLIC_BASE_PATH = previous;
+      }
+    }
+  });
+});
 
 describe("validateImageFile", () => {
   it("accepts jpeg, png, and webp under the size cap", () => {
