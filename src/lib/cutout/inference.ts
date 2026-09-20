@@ -11,22 +11,32 @@ type InferenceSession = import("onnxruntime-web").InferenceSession;
 let ortPromise: Promise<OrtModule> | null = null;
 let sessionPromise: Promise<InferenceSession> | null = null;
 
-const progressListeners = new Set<(message: string) => void>();
+export type ModelProgress = {
+  message: string;
+  percent: number;
+};
 
-export function onModelProgress(listener: (message: string) => void): () => void {
+const progressListeners = new Set<(progress: ModelProgress) => void>();
+
+export function onModelProgress(listener: (progress: ModelProgress) => void): () => void {
   progressListeners.add(listener);
   return () => {
     progressListeners.delete(listener);
   };
 }
 
-function emitProgress(message: string): void {
-  for (const listener of progressListeners) listener(message);
+function emitProgress(progress: ModelProgress): void {
+  for (const listener of progressListeners) listener(progress);
+}
+
+export function modelDownloadPercent(received: number, total: number): number {
+  if (!(total > 0)) return 18;
+  return Math.min(88, Math.round(18 + (received / total) * 70));
 }
 
 async function loadOrt(): Promise<OrtModule> {
   if (!ortPromise) {
-    emitProgress("Starting ONNX Runtime…");
+    emitProgress({ message: "Starting ONNX Runtime…", percent: 8 });
     ortPromise = import("onnxruntime-web/wasm").then((ort) => {
       ort.env.wasm.numThreads = 1;
       ort.env.wasm.proxy = false;
@@ -42,7 +52,7 @@ async function loadOrt(): Promise<OrtModule> {
 }
 
 async function downloadModel(): Promise<ArrayBuffer> {
-  emitProgress("Downloading U²-Net…");
+  emitProgress({ message: "Downloading U²-Net…", percent: 18 });
   const response = await fetch(MODEL_URL);
   if (!response.ok) {
     throw new Error("Could not download the U-Net weights.");
@@ -60,7 +70,11 @@ async function downloadModel(): Promise<ArrayBuffer> {
     if (value) {
       chunks.push(value);
       received += value.byteLength;
-      emitProgress(`Downloading U²-Net ${Math.min(99, Math.round((received / total) * 100))}%`);
+      const ofFile = Math.min(99, Math.round((received / total) * 100));
+      emitProgress({
+        message: `Downloading U²-Net ${ofFile}%`,
+        percent: modelDownloadPercent(received, total),
+      });
     }
   }
   const bytes = new Uint8Array(received);
@@ -77,12 +91,12 @@ export async function getSession(): Promise<InferenceSession> {
     sessionPromise = (async () => {
       const ort = await loadOrt();
       const model = await downloadModel();
-      emitProgress("Compiling U²-Net…");
+      emitProgress({ message: "Compiling U²-Net…", percent: 90 });
       const session = await ort.InferenceSession.create(model, {
         executionProviders: ["wasm"],
         graphOptimizationLevel: "all",
       });
-      emitProgress("Model ready");
+      emitProgress({ message: "Model ready", percent: 100 });
       return session;
     })().catch((reason: unknown) => {
       sessionPromise = null;

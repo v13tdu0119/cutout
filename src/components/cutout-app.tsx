@@ -1,5 +1,6 @@
 "use client";
 
+import { ModelSplash } from "@/components/model-splash";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -81,8 +82,11 @@ export function CutoutApp() {
   const [phase, setPhase] = useState("Warming up U²-Net…");
   const [error, setError] = useState<string | null>(null);
   const [modelReady, setModelReady] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
   const [modelPhase, setModelPhase] = useState("Starting ONNX Runtime…");
+  const [modelPercent, setModelPercent] = useState(8);
   const [modelFailed, setModelFailed] = useState(false);
+  const [modelEpoch, setModelEpoch] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [frame, setFrame] = useState<Frame | null>(null);
   const [stage, setStage] = useState<Stage>("cutout");
@@ -94,7 +98,10 @@ export function CutoutApp() {
   const backdrop = BACKDROPS.find((item) => item.id === backdropId) ?? BACKDROPS[0];
 
   useEffect(() => {
-    const stop = onModelProgress(setModelPhase);
+    const stop = onModelProgress((progress) => {
+      setModelPhase(progress.message);
+      setModelPercent(progress.percent);
+    });
     let ignore = false;
     getSession()
       .then(() => {
@@ -102,6 +109,7 @@ export function CutoutApp() {
         setModelReady(true);
         setModelFailed(false);
         setModelPhase("Model ready");
+        setModelPercent(100);
       })
       .catch((reason: unknown) => {
         if (ignore) return;
@@ -115,7 +123,13 @@ export function CutoutApp() {
       ignore = true;
       stop();
     };
-  }, []);
+  }, [modelEpoch]);
+
+  useEffect(() => {
+    if (!modelReady) return;
+    const timer = window.setTimeout(() => setShowSplash(false), 450);
+    return () => window.clearTimeout(timer);
+  }, [modelReady]);
 
   const matte = useMemo(() => {
     if (!frame) return null;
@@ -202,6 +216,27 @@ export function CutoutApp() {
   }
 
   const busy = status === "running";
+
+  if (showSplash) {
+    return (
+      <div className="flex min-h-full flex-1 flex-col">
+        <ModelSplash
+          phase={modelPhase}
+          percent={modelPercent}
+          failed={modelFailed}
+          error={error}
+          onRetry={() => {
+            setError(null);
+            setStatus("idle");
+            setModelFailed(false);
+            setModelPhase("Starting ONNX Runtime…");
+            setModelPercent(8);
+            setModelEpoch((n) => n + 1);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-full flex-col">
